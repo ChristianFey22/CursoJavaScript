@@ -1,54 +1,131 @@
-// Cotizador de Préstamos (Calculo Simple)
+// ENTRADA DE DATOS
 
-// Ingreso de Datos
-let paquete;
-let monto;
-let cuotas;
+ //Defino mi Array de Productos del Catálogo
+const productos = [
+    {id:1, nombre:"Coca Cola", precio:400, stock:10},
+    {id:2, nombre:"Pepsi", precio:380, stock:10},
+    {id:3, nombre:"Manaos", precio:300, stock:20},
+    {id:4, nombre:"Cunington Cola", precio:320, stock:10}
+];
 
-do {
-    paquete = prompt("Ingrese su Tipo de Paquete Nación que posee: (Simple / Estilo / Insignia)").toLowerCase();
-} while ((paquete != "simple") && (paquete != "estilo") && (paquete != "insignia"));
+//Defino mi Array de Productos del Carrito
+const productos_carrito = []; 
 
-do {
-    monto = parseFloat(prompt("Ingrese el Monto: (Máximo $5.000.000)"));
-} while ((monto < 100000) || (monto > 5000000));
+// Defino la Clase Producto
+class Producto {
+    constructor (id, nombre, precio, stock) {
+        this.id = id;
+        this.nombre = nombre;
+        this.precio = precio;
+        this.stock = stock;
+        this.iva = 21;
+    }
 
-do {
-    cuotas = parseInt(prompt("Ingese la Cantidad de Cuotas: (Máximo 36 meses)"));
-} while ((cuotas < 1) || (cuotas > 36));
-
-
-// Proceso
-let interes_paquete;
-let costo_cuenta;
-let salida = "";
-const iva = 21;
-
-switch(paquete) {
-    case "simple":
-        interes_paquete = 45;
-        costo_cuenta = 1600;
-        break;
-    case "estilo":
-        interes_paquete = 43;
-        costo_cuenta = 1700;
-        break;
-    case "insignia":
-        interes_paquete = 41;
-        costo_cuenta = 1800;
-        break;
+    aplicarIVA() {
+        this.precio = this.precio + ((this.precio * this.iva) / 100);
+    }
 }
 
-let monto_iva = monto + ((monto * iva) / 100);
-console.log("Monto c/IVA: $" + monto_iva);
+// Declaro la función Buscar Producto
+function buscarProducto(id) {
+    return (productos.find(item => item.id === id) || null); // Devuelve un Objeto
+}
 
-let monto_interes = monto_iva + ((monto_iva * interes_paquete) / 100);
-let monto_interes_salida = monto;
-console.log("Monto c/Interes: $" + monto_interes);
+// Declaro la función Agregar Producto al Carrito
+function agregarProducto(producto) {
+    productos_carrito.push(producto);
+}
 
-let valor_cuotas = (monto_interes / cuotas);
-console.log("Cuota: $" + valor_cuotas);
+// Declaro la función Eliminar Producto del Carrito
+function eliminarProducto(id) {
+    let pos = productos_carrito.findIndex(item => item.id === id);
 
-// Salida de Datos
-alert("PLAN CONTRATADO: \n\nPaquete: " + paquete + "\n" + "Monto: $" + monto.toFixed(2) + "\n" + "Cuotas: " + cuotas);
-alert("Total a Pagar: $" + monto_interes.toFixed(2) + "\n" + "Cuotas: " + cuotas + " de $" + valor_cuotas.toFixed(2));
+    if (pos > -1) {
+        productos_carrito.splice(pos, 1);
+    }
+}
+
+// Recorro los Productos del Catálogo
+function recorrerProductos() {
+    let contenido_productos = "";
+
+    for (let producto of productos) {
+        contenido_productos += producto.id + "- " + producto.nombre + " $" + producto.precio + "\n";
+    }
+
+    return contenido_productos;
+}
+
+// Recorro los Productos del Carrito
+function recorrerProductosCarrito() {
+    let contenido_productos = "";
+
+    for (let producto of productos_carrito) {
+        contenido_productos += producto.id + "- " + producto.nombre + " $" + producto.precio + "\n";
+    }
+
+    return contenido_productos;
+}
+
+// Realizo la carga de Productos de Catálogo
+let cargarProducto = true;
+
+
+
+// Realizo la carga de Productos en el Carrito
+cargarProducto = true;
+
+while (cargarProducto) {
+    let contenido_productos = recorrerProductos();
+
+    // Indico el ID del Producto
+    let id_producto = parseInt(prompt("Seleccione el Producto a agregar al Carrito:\n\n" + contenido_productos))
+    // Buscar el Producto
+    let producto = buscarProducto(id_producto);
+    // Verifico si el Producto seleccionado es válido
+    if (producto != null) {
+        // Agregar el Producto seleccionado al Carrito
+        agregarProducto(producto);
+    } else {
+        alert("No existe el Producto con el ID: " + id_producto + "!");
+    }
+    
+    // Pregunto si deseo continuar cargando Productos al Carrito
+    cargarProducto = confirm("Desea agregar otro Producto al Carrito?");
+}
+
+// Realizo la eliminación de Productos que no deseo que estén en el Carrito
+cargarProducto = true;
+
+while (cargarProducto) {
+    let contenido_productos = recorrerProductosCarrito();
+
+    // Indico el ID del Producto
+    let id_producto = parseInt(prompt("Seleccione el Producto que desee eliminar del Carrito: (0 - Salir)\n\n" + contenido_productos));
+
+    // Valido si existe el ID del Producto
+    if (id_producto > 0) {
+        //Eliminar el Producto del Carrito
+        eliminarProducto(id_producto);
+    } else {
+        alert("No existe el Producto con el ID: " + id_producto + "!");
+    }
+    
+    // Pregunto si deseo continuar cargando Productos al Carrito
+    cargarProducto = confirm("Desea eliminar otro Producto del Carrito?");
+}
+
+// Imprimo el total de Productos de mi Carrito
+let suma_total = 0;
+let contenido_productos = "";
+
+for (let prod of productos_carrito) {
+    // Creo una nueva instancia de la Clase Producto
+    let producto = new Producto(prod.id, prod.nombre, prod.precio, prod.stock);
+    producto.aplicarIVA(); // Aplico el método Calcular IVA
+    contenido_productos += producto.id + "- " + producto.nombre + " $" + producto.precio + "\n";
+    suma_total += producto.precio; // Sumo al Contador "Suma Total" el valor precio del producto
+}
+
+// Muestro el Total a Pagar
+alert("Productos Seleccionados:\n\n" + contenido_productos + "\n\nTotal a Pagar: $" + suma_total);
